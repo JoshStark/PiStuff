@@ -1,0 +1,15 @@
+[Unit]
+Description=Python HTTP Server providing system stats
+ConditionFileIsExecutable=/home/pi/StatsServer/StatsServer.py
+
+[Service]
+ExecStart=python /home/pi/StatsServer/StatsServer.py --port=1337
+WorkingDirectory=/home/pi/StatsServer
+
+StandardOutput=file:/var/log/StatsServer.out
+StandardError=file:/var/log/StatsServer.err
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
