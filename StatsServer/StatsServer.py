@@ -89,7 +89,10 @@ class PiStats():
                 return {
                     'total': int(stats[0]),
                     'used': int(stats[1]),
-                    'free': int(stats[2])
+                    'free': int(stats[2]),
+                    'shared': int(stats[3]),
+                    'buffered': int(stats[4]),
+                    'cached': int(stats[5])
                 }
 
         return {
