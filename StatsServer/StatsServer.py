@@ -107,7 +107,7 @@ class PiStats():
             'used': 0,
             'free': 0,
             'shared': 0,
-            'buffered: 0,
+            'buffered': 0,
             'cached': 0
         }
 
