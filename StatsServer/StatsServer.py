@@ -78,25 +78,37 @@ class PiStats():
 
         p = os.popen('free')
         
+        buffer_contains_cache = False
         i = 0
         while i < 100:
             
             i = i + 1
             line = p.readline()
-            if i == 2:
+            if i == 1:
+
+                if line.split()[4] == "buff/cache":
+                    buffer_contains_cache = True
+
+            elif i == 2:
                 
                 stats = line.split()
                 
                 mem_total    = int(stats[1])
                 mem_used     = int(stats[2])
+                mem_free     = int(stats[3])
                 mem_shared   = int(stats[4])
                 mem_buffered = int(stats[5])
-                mem_cached   = int(stats[6])
-                
+
+                if buffer_contains_cache:
+                    mem_cached = 0
+                else:
+                    mem_cached = int(stats[6])
+                    mem_used   = mem_used - (mem_buffered + mem_cached)
+
                 return {
                     'total': mem_total,
-                    'used': mem_used - (mem_buffered + mem_cached),
-                    'free': mem_total - mem_used,
+                    'used': mem_used,
+                    'free': mem_free,
                     'shared': mem_shared,
                     'buffered': mem_buffered,
                     'cached': mem_cached
