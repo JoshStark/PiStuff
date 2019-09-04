@@ -85,20 +85,30 @@ class PiStats():
             line = p.readline()
             if i == 2:
                 
-                stats = line.split()[1:4]
+                stats = line.split()
+                
+                mem_total    = int(stats[1])
+                mem_used     = int(stats[2])
+                mem_shared   = int(stats[4])
+                mem_buffered = int(stats[5])
+                mem_cached   = int(stats[6])
+                
                 return {
-                    'total': int(stats[0]),
-                    'used': int(stats[1]),
-                    'free': int(stats[2]),
-                    'shared': int(stats[3]),
-                    'buffered': int(stats[4]),
-                    'cached': int(stats[5])
+                    'total': mem_total,
+                    'used': mem_used - (mem_buffered + mem_cached),
+                    'free': mem_total - mem_used,
+                    'shared': mem_shared,
+                    'buffered': mem_buffered,
+                    'cached': mem_cached
                 }
 
         return {
             'total': 0,
             'used': 0,
-            'free': 0
+            'free': 0,
+            'shared': 0,
+            'buffered: 0,
+            'cached': 0
         }
 
     def get_gpu_temp(self):
