@@ -1,10 +1,32 @@
 #!/usr/bin/env python
+# =============
+# MIT License
+#
+# Copyright (c) 2019 Josh Stark.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
 
 import argparse
 import time
 import subprocess
 import json
-import os
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
@@ -39,7 +61,7 @@ class PiStatsRequestHandler(BaseHTTPRequestHandler):
         self._set_headers();
         self.wfile.write(json.dumps(all_stats))
 
-class PiStats():
+class PiStats:
 
     def __init__(self):
 
@@ -76,51 +98,42 @@ class PiStats():
 
     def get_mem_usage(self):
 
-        p = os.popen('free')
-        
-        buffer_contains_cache = False
-        i = 0
-        while i < 100:
+        mem_total       = 0
+        mem_cached      = 0
+        mem_buffered    = 0
+        mem_free        = 0
+        mem_reclaimable = 0
+        mem_shmem       = 0
+
+        meminfo = subprocess.check_output([ "cat", "/proc/meminfo" ]).splitlines()
+        for line in meminfo:
+
+            mem_vals = line.split()
+            key = mem_vals[0]
+            mem = int(mem_vals[1])
             
-            i = i + 1
-            line = p.readline()
-            if i == 1:
+            if key == "MemTotal:":
+                mem_total = mem
+            elif key == "MemFree:":
+                mem_free = mem
+            elif key == "Buffers:":
+                mem_buffered = mem
+            elif key == "Cached:":
+                mem_cached = mem
+            elif key == "SReclaimable:":
+                mem_reclaimable = mem
+            elif key == "Shmem":
+                mem_shmem = mem
 
-                if line.split()[4] == "buff/cache":
-                    buffer_contains_cache = True
-
-            elif i == 2:
-                
-                stats = line.split()
-                
-                mem_total    = int(stats[1])
-                mem_used     = int(stats[2])
-                mem_free     = int(stats[3])
-                mem_shared   = int(stats[4])
-                mem_buffered = int(stats[5])
-
-                if buffer_contains_cache:
-                    mem_cached = 0
-                else:
-                    mem_cached = int(stats[6])
-                    mem_used   = mem_used - (mem_buffered + mem_cached)
-
-                return {
-                    'total': mem_total,
-                    'used': mem_used,
-                    'free': mem_free,
-                    'shared': mem_shared,
-                    'buffered': mem_buffered,
-                    'cached': mem_cached
-                }
+        mem_cached = mem_cached + (mem_reclaimable - mem_shmem)
+        mem_used   = mem_total - mem_free
 
         return {
-            'total': 0,
-            'used': 0,
-            'free': 0,
-            'shared': 0,
-            'buffered': 0,
-            'cached': 0
+            'total': mem_total,
+            'used': mem_used - (mem_buffered + mem_cached),
+            'free': mem_free,
+            'buffered': mem_buffered,
+            'cached': mem_cached
         }
 
     def get_gpu_temp(self):
@@ -157,7 +170,7 @@ class PiStats():
             idle  = fields[3] + fields[4]
             total = sum(fields)
 
-            delta_idle = idle - self._previous_cpu_raw['idle'][cpu_name]
+            delta_idle  = idle - self._previous_cpu_raw['idle'][cpu_name]
             delta_total = total - self._previous_cpu_raw['total'][cpu_name]
 
             self._previous_cpu_raw['idle'][cpu_name]  = idle
@@ -189,7 +202,7 @@ class Main:
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, default=1337, help='The HTTP port the server will run off')
+    parser.add_argument('--port', type=int, default=3000, help='The HTTP port the server will run off')
 
     args = parser.parse_args()
 
