@@ -41,8 +41,8 @@ if [ ! -f $autostart_path ]; then
     touch $autostart_path
 fi
 
-current_process=$(ps aux | awk '/[L]ibreELECFanShim/ {print $1}')
-if [[ $current_process ]]; then
+current_process=$(ps aux | awk '/[L]ibreELECFanShim.py/ {print $1}')
+if [ ! -z $current_process ]; then
     echo "Killing existing PID=${current_process}"
     kill $current_process
 fi
