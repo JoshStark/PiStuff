@@ -22,8 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-on_threshold=$1
-off_threshold=$2
+on_threshold=${1:=65}
+off_threshold=${2:=45}
 
 remote_fanshim_path="https://raw.githubusercontent.com/JoshStark/PiStuff/master/FanShim/LibreELECFanShim.py"
 local_fanshim_dir="/storage/LibreELECFanShim"
@@ -50,10 +50,10 @@ fi
 wget $remote_fanshim_path -O $local_fanshim_path
 chmod u+x $local_fanshim_path
 
-if grep -q "LibreELECFanShim" $autostart_path; then
+if ! grep -q "LibreELECFanShim" $autostart_path; then
     echo "Inserting autostart command: ${autostart_cmd}"
     echo "${autostart_cmd}" >> $autostart_path
 fi
 
-echo "Starting LibreELECFanShim"
+echo "Starting LibreELECFanShim: ${autostart_cmd}"
 eval $autostart_cmd

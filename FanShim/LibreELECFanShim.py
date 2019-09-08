@@ -57,7 +57,7 @@ class LibreELECFanShim():
 
         self._pin_fancontrol = pin_fancontrol
 
-        atexit.register(self.__cleanup)
+        atexit.register(self._cleanup)
 
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
