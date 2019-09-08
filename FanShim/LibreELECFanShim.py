@@ -39,7 +39,12 @@ import argparse
 import atexit
 
 import logging
+
+LOG_HANDLER = logging.StreamHandler()
+LOG_HANDLER.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
 LOG = logging.getLogger('LibreELECFanShim')
+LOG.addHandler(LOG_HANDLER)
 LOG.setLevel(logging.ERROR)
 
 import sys
@@ -64,7 +69,7 @@ class LibreELECFanShim():
         GPIO.setup(self._pin_fancontrol, GPIO.OUT)
 
         # Initially turn off the fan
-        self._set_fan_off()
+        self.set_fan_off()
 
     def get_fan(self):
         """Get current fan state."""
@@ -149,7 +154,7 @@ class FanShimMonitor():
 
             elif current_cpu_temp <= self._threshold_off and self._fan_running:
 
-                LOG.info("Temp has hit lower threshold of {} while turned on. Turning fan on.".format(self._threshold_off))
+                LOG.info("Temp has hit lower threshold of {} while turned on. Turning fan off.".format(self._threshold_off))
                 self._fan_running = False
                 self._fanshim.set_fan_off()
 
