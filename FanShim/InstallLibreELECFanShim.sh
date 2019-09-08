@@ -47,8 +47,8 @@ if [[ $current_process ]]; then
     kill $current_process
 fi
 
-pushd $local_fanshim_dir
 wget $remote_fanshim_path -O $local_fanshim_path
+chmod u+x $local_fanshim_path
 
 if grep -q "LibreELECFanShim" $autostart_path; then
     echo "Inserting autostart command: ${autostart_cmd}"
