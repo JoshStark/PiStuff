@@ -38,6 +38,10 @@ import subprocess
 import argparse
 import atexit
 
+import logging
+LOG = logging.getLogger('LibreELECFanShim')
+LOG.setLevel(logging.ERROR)
+
 import sys
 sys.path.append('/storage/.kodi/addons/virtual.rpi-tools/lib')
 
@@ -51,20 +55,20 @@ class LibreELECFanShim():
         the semi-limited libraries made available via LibreELEC
         """
 
-        self.__pin_fancontrol = pin_fancontrol
+        self._pin_fancontrol = pin_fancontrol
 
         atexit.register(self.__cleanup)
 
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.__pin_fancontrol, GPIO.OUT)
+        GPIO.setup(self._pin_fancontrol, GPIO.OUT)
 
         # Initially turn off the fan
         self._set_fan_off()
 
     def get_fan(self):
         """Get current fan state."""
-        return GPIO.input(self.__pin_fancontrol)
+        return GPIO.input(self._pin_fancontrol)
 
     def toggle_fan(self):
         """Toggle fan state."""
@@ -75,26 +79,26 @@ class LibreELECFanShim():
         Set the fan on/off.
         :param fan_state: True/False for on/off
         """
-        GPIO.output(self.__pin_fancontrol, True if fan_state else False)
+        GPIO.output(self._pin_fancontrol, True if fan_state else False)
         return True if fan_state else False
 
     def set_fan_on(self):
         """
         Convenience function to start fan
         """
-        return self._set_fan(True)
+        self._set_fan(True)
 
     def set_fan_off(self):
         """
         Convenience function to stop fan
         """
-        return self._set_fan(False)
+        self._set_fan(False)
 
     def _cleanup(self):
         """
-        Originally used to stop button polling but this version does not make
-        use of it, so only cleans up the GPIO
+        Cleans up GPIO and turns off the fan.
         """
+        self.set_fan_off()
         GPIO.cleanup()
 
 class FanShimMonitor():
@@ -114,8 +118,10 @@ class FanShimMonitor():
         self._threshold_off = threshold_off
         self._threshold_on  = threshold_on
         self._interval      = interval
-        self._verbose       = verbose
         self._fan_running   = False
+
+        if verbose:
+            LOG.setLevel(logging.DEBUG)
 
     @staticmethod
     def _get_cpu_temp():
@@ -133,19 +139,19 @@ class FanShimMonitor():
         while True:
         
             current_cpu_temp = self._get_cpu_temp()
+            LOG.info("Current Temp: {:05.02f}, Fan Running: {}".format(current_cpu_temp, self._fan_running))
 
             if current_cpu_temp >= self._threshold_on and not self._fan_running:
                 
+                LOG.info("Temp has hit upper threshold of {} while turned off. Turning fan on.".format(self._threshold_on))
                 self._fan_running = True
                 self._fanshim.set_fan_on()
 
             elif current_cpu_temp <= self._threshold_off and self._fan_running:
 
+                LOG.info("Temp has hit lower threshold of {} while turned on. Turning fan on.".format(self._threshold_off))
                 self._fan_running = False
                 self._fanshim.set_fan_off()
-
-            if self._verbose:
-                print("Current Temp: {:05.02f}, Fan Running: {}".format(current_cpu_temp, self._fan_running))
 
             time.sleep(self._interval)
 
@@ -159,10 +165,10 @@ def run(controller):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--off-threshold', type=float, default=45.0, help='The minimum temperature the CPU must hit before the fan turns off')
-    parser.add_argument('--on-threshold', type=float, default=65.0, help='The minimum temperature the CPU must hit before the fan turns on')
-    parser.add_argument('--interval', type=float, default=2.0, help='Delay, in seconds, between temperature readings')
-    parser.add_argument('--verbose', action='store_true', default=False, help='Output temp and fan status messages')
+    parser.add_argument('--off-threshold', type=float,          default=45.0,  help='The minimum temperature the CPU must hit before the fan turns off')
+    parser.add_argument('--on-threshold',  type=float,          default=65.0,  help='The minimum temperature the CPU must hit before the fan turns on')
+    parser.add_argument('--interval',      type=float,          default=5.0,   help='Delay, in seconds, between temperature readings')
+    parser.add_argument('--verbose',       action='store_true', default=False, help='Output temp and fan status messages')
 
     args = parser.parse_args()
 
