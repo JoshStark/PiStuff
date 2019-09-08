@@ -22,8 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-on_threshold=${1:=65}
-off_threshold=${2:=45}
+on_threshold=${1:-65}
+off_threshold=${2:-45}
 
 remote_fanshim_path="https://raw.githubusercontent.com/JoshStark/PiStuff/master/FanShim/LibreELECFanShim.py"
 local_fanshim_dir="/storage/LibreELECFanShim"

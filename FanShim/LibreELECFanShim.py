@@ -72,7 +72,7 @@ class LibreELECFanShim():
 
     def toggle_fan(self):
         """Toggle fan state."""
-        return self._set_fan(False if self._get_fan() else True)
+        return self.set_fan(False if self._get_fan() else True)
 
     def set_fan(self, fan_state):
         """
@@ -86,13 +86,13 @@ class LibreELECFanShim():
         """
         Convenience function to start fan
         """
-        self._set_fan(True)
+        self.set_fan(True)
 
     def set_fan_off(self):
         """
         Convenience function to stop fan
         """
-        self._set_fan(False)
+        self.set_fan(False)
 
     def _cleanup(self):
         """
