@@ -50,10 +50,15 @@ fi
 wget $remote_fanshim_path -O $local_fanshim_path
 chmod u+x $local_fanshim_path
 
-if ! grep -q "LibreELECFanShim" $autostart_path; then
-    echo "Inserting autostart command: ${autostart_cmd}"
-    echo "${autostart_cmd}" >> $autostart_path
+if grep -q "LibreELECFanShim" $autostart_path; then
+    
+    echo "Replacing old autostart command"
+    existing_line_number=$(grep -n "LibreELECFanShim.py" $autostart_path | awk -F: '{print $1}')
+    sed -i.bak -e "${existing_line_number}d" $autostart_path $autostart_path
 fi
+
+echo "Inserting autostart command: ${autostart_cmd}"
+echo "${autostart_cmd}" >> $autostart_path
 
 echo "Starting LibreELECFanShim: ${autostart_cmd}"
 eval $autostart_cmd
